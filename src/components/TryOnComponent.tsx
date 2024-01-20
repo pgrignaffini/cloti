@@ -17,7 +17,7 @@ type TryOnResponse = {
 
 const TryOnComponent = () => {
     const [generatedImageUrl, setGeneratedImageUrl] = useState('');
-    const { selectedBottom, selectedTop, selectedModel } = useClotiStore()
+    const { selectedBottom, selectedTop, selectedModel, setSelectedModel } = useClotiStore()
     const [isLoading, setIsLoading] = useState(false);
 
     const handleTryOn = async () => {
@@ -36,7 +36,10 @@ const TryOnComponent = () => {
             });
 
             const modelFile = (response.data as TryOnResponse).model_metadata.model_file;
-            setGeneratedImageUrl(`https://media.revery.ai/generated_model_image/${modelFile}.png`);
+            setSelectedModel({
+                id: (response.data as TryOnResponse).model_metadata.model_id,
+                file: modelFile,
+            });
         } catch (error) {
             console.error('Error during try-on request:', error);
         } finally {

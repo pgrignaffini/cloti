@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { maleModel } from "~/components/Models";
 
 interface ClotiStoreState {
     selectedModel: {
@@ -23,7 +24,7 @@ interface ClotiStoreActions {
 
 
 const useClotiStore = create<ClotiStoreState & ClotiStoreActions>()((set) => ({
-    selectedModel: null,
+    selectedModel: maleModel,
     selectedTop: null,
     selectedBottom: null,
     setSelectedModel: (model) => set({ selectedModel: model }),
