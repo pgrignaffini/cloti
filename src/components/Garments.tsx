@@ -1,6 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
 import React from 'react';
-import { getAuthenticationHeader } from '~/utils/auth';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import useClotiStore from '~/hooks/useClotiStore';
@@ -63,60 +62,34 @@ const Garments = () => {
     const bottoms = response?.garments?.filter(garment => garment.tryon.category === 'bottoms');
 
     const buildGarmentsBody = ({ topId, bottomId }: { topId?: string, bottomId?: string }) => {
-        if (topId && bottomId) {
-            return {
-                garments: {
-                    tops: topId,
-                    bottoms: bottomId,
-                },
-                model_id: selectedModel?.id,
-            }
-        }
+        const garments: {
+            tops?: string;
+            bottoms?: string;
+        } = {};
         if (topId) {
-            if (selectedBottom) {
-                return {
-                    garments: {
-                        tops: topId,
-                        bottoms: selectedBottom.id,
-                    },
-                    model_id: selectedModel?.id,
-                }
-            } else {
-                return {
-                    garments: {
-                        tops: topId,
-                    },
-                    model_id: selectedModel?.id,
-                }
-            }
+            garments.tops = topId;
+        } else if (selectedTop) {
+            garments.tops = selectedTop.id;
         }
         if (bottomId) {
-            if (selectedTop) {
-                return {
-                    garments: {
-                        tops: selectedTop.id,
-                        bottoms: bottomId,
-                    },
-                    model_id: selectedModel?.id,
-                }
-            } else {
-                return {
-                    garments: {
-                        bottoms: bottomId,
-                    },
-                    model_id: selectedModel?.id,
-                }
-            }
+            garments.bottoms = bottomId;
+        } else if (selectedBottom) {
+            garments.bottoms = selectedBottom.id;
         }
+        if (Object.keys(garments).length === 0) {
+            return {}; // or return a default value or throw an error
+        }
+        return {
+            garments,
+            model_id: selectedModel?.id,
+        };
     }
 
     const handleTryOn = async ({ topId, bottomId }: { topId?: string, bottomId?: string }) => {
         const data = JSON.stringify(buildGarmentsBody({ topId, bottomId }));
 
         try {
-            const response = await axios.post('https://api.revery.ai/console/v1/request_tryon', data, {
-                headers: getAuthenticationHeader(true),
-            });
+            const response = await axios.post('/api/tryon', data)
             const modelFile = (response.data as TryOnResponse).model_metadata.model_file;
             setSelectedModel({
                 id: (response.data as TryOnResponse).model_metadata.model_id,
