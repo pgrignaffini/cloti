@@ -43,36 +43,75 @@ const Garments = () => {
     const { selectedBottom, selectedTop, selectedModel, setSelectedModel, setSelectedBottom, setSelectedTop } = useClotiStore()
 
     const fetchGarments = async () => {
-        const result = await axios.get('https://api.revery.ai/console/v1/get_filtered_garments', {
-            headers: getAuthenticationHeader()
-        });
+        const result = await axios.get('/api/getGarments');
         return result.data as GetFilteredGarmentsResponse;
     };
 
-    const deleteGarment = async (garmentId: string) => {
-        try {
-            const result = await axios.put(`https://api.revery.ai/console/v1/delete_garment`, { garment_id: garmentId }, {
-                headers: getAuthenticationHeader()
-            });
-            console.log(result.data);
-        } catch (error) {
-            console.error('Error during try-on request:', error);
-        }
-    }
-
+    // const deleteGarment = async (garmentId: string) => {
+    //     try {
+    //         const result = await axios.put(`https://api.revery.ai/console/v1/delete_garment`, { garment_id: garmentId }, {
+    //             headers: getAuthenticationHeader()
+    //         });
+    //         console.log(result.data);
+    //     } catch (error) {
+    //         console.error('Error during try-on request:', error);
+    //     }
+    // }
     const { data: response } = useQuery({ queryKey: ['garments'], queryFn: fetchGarments })
 
     const tops = response?.garments?.filter(garment => garment.tryon.category === 'tops');
     const bottoms = response?.garments?.filter(garment => garment.tryon.category === 'bottoms');
 
+    const buildGarmentsBody = ({ topId, bottomId }: { topId?: string, bottomId?: string }) => {
+        if (topId && bottomId) {
+            return {
+                garments: {
+                    tops: topId,
+                    bottoms: bottomId,
+                },
+                model_id: selectedModel?.id,
+            }
+        }
+        if (topId) {
+            if (selectedBottom) {
+                return {
+                    garments: {
+                        tops: topId,
+                        bottoms: selectedBottom.id,
+                    },
+                    model_id: selectedModel?.id,
+                }
+            } else {
+                return {
+                    garments: {
+                        tops: topId,
+                    },
+                    model_id: selectedModel?.id,
+                }
+            }
+        }
+        if (bottomId) {
+            if (selectedTop) {
+                return {
+                    garments: {
+                        tops: selectedTop.id,
+                        bottoms: bottomId,
+                    },
+                    model_id: selectedModel?.id,
+                }
+            } else {
+                return {
+                    garments: {
+                        bottoms: bottomId,
+                    },
+                    model_id: selectedModel?.id,
+                }
+            }
+        }
+    }
+
     const handleTryOn = async ({ topId, bottomId }: { topId?: string, bottomId?: string }) => {
-        const data = JSON.stringify({
-            garments: {
-                tops: topId ?? selectedTop?.id ?? null,
-                bottoms: bottomId ?? selectedBottom?.id ?? null,
-            },
-            model_id: selectedModel?.id,
-        });
+        const data = JSON.stringify(buildGarmentsBody({ topId, bottomId }));
 
         try {
             const response = await axios.post('https://api.revery.ai/console/v1/request_tryon', data, {
