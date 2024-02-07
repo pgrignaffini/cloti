@@ -62,32 +62,32 @@ const Garments = () => {
     const bottoms = response?.garments?.filter(garment => garment.tryon.category === 'bottoms');
 
     const buildGarmentsBody = ({ topId, bottomId }: { topId?: string, bottomId?: string }) => {
-        const garments: {
+        const product_ids: {
             tops?: string;
             bottoms?: string;
         } = {};
         if (topId) {
-            garments.tops = topId;
+            product_ids.tops = topId;
         } else if (selectedTop) {
-            garments.tops = selectedTop.id;
+            product_ids.tops = selectedTop.id;
         }
         if (bottomId) {
-            garments.bottoms = bottomId;
+            product_ids.bottoms = bottomId;
         } else if (selectedBottom) {
-            garments.bottoms = selectedBottom.id;
+            product_ids.bottoms = selectedBottom.id;
         }
-        if (Object.keys(garments).length === 0) {
+        if (Object.keys(product_ids).length === 0) {
             return {}; // or return a default value or throw an error
         }
         return {
-            garments,
+            product_ids,
             model_id: selectedModel?.id,
+            background: 'white',
         };
     }
 
     const handleTryOn = async ({ topId, bottomId }: { topId?: string, bottomId?: string }) => {
-        const data = JSON.stringify(buildGarmentsBody({ topId, bottomId }));
-
+        const data = buildGarmentsBody({ topId, bottomId });
         try {
             const response = await axios.post('/api/tryon', data)
             const modelFile = (response.data as TryOnResponse).model_metadata.model_file;
